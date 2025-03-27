@@ -1,6 +1,7 @@
 #include "dataStorage.h"
+#include <stdio.h>
 int main()
 {
-    chunkStorer("bisonBaba", "Sairam.");
+    chunkStorer("sahastah", "Sairam.");
     return 0;
 }

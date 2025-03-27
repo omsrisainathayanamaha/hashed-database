@@ -24,25 +24,33 @@ int chunkStorer(const char* key, const char* data)
     char* hashes[chunks]; //the hashes
     for(int i = 0; i < chunks; i++)
     {
-        hashes[i] = malloc(sizeof(XXH64_hash_t));
+        printf("Hashing %s", arr[i]);
+        hashes[i] = malloc(XXH64_STRING_BYTES);
         sprintf(hashes[i], "%llu", XXH64(arr[i], strlen(arr[i]), 0)); //prints a hash as a string to the hash array
+        printf("\nHash of %s\n For i = %d", hashes[i], i);
         
     }
-    char* keyHash = malloc(sizeof(XXH64_hash_t));
+    printf("\nHashes[0]: %s", hashes[0]);
+    char* keyHash = malloc(XXH64_STRING_BYTES);
     sprintf(keyHash, "%llu", XXH64(key, strlen(key), 0));
+    printf("\nHashes[0] after printf: %s", hashes[0]);
     char* extension = malloc(strlen(hashes[0])+2);
     
     strcpy(extension, ":");
-    strcat(extension, hashes[0]);
+    strcat(extension, hashes[0]); //first element of the found array
+    //extension[strlen(hashes[0])+strlen(":")] = '\0';
+    printf("\nExtension %s", extension); //debug line
     char* searchStr = malloc(strlen(keyHash)+2);
     strcpy(searchStr, keyHash);
     strcat(searchStr, ":");
+    printf("\nSearch string %s",searchStr); //debug line
     
     if(!searchInFile(HASH_FILE, searchStr)){
         char* keyHashTmp = malloc(strlen(keyHash)+strlen(NEW_LINE)+1);
         strcpy(keyHashTmp, keyHash);
         strcat(keyHashTmp, extension);
         strcat(keyHashTmp, NEW_LINE);
+        printf("\nkeyHashTmp %s", keyHashTmp); //debug line
         appendContentsToFile(keyHashTmp, HASH_FILE);
         free(keyHashTmp);
         
@@ -51,19 +59,18 @@ int chunkStorer(const char* key, const char* data)
         return 0;
     }
     free(searchStr); // freed out here because of scope?
-    char* directoried = malloc(strlen(DIRECTORY)+sizeof(XXH64_hash_t)+1); //the directorized current filename
+    char* directoried = malloc(strlen(DIRECTORY)+strlen(hashes[0])+strlen(FILE_END)+1); //the directorized current filename
     for(int i = 0; i < chunks; i++)
     {
+        directoried = malloc(strlen(DIRECTORY)+strlen(hashes[0])+strlen(FILE_END)+1);
         strcpy(directoried, DIRECTORY);
         strcat(directoried, hashes[i]);
+        strcat(directoried, FILE_END);
+        printf("\nHash %s\n Directoried %s", hashes[i], directoried);
 
-        if(checkFileExistence(directoried)) //if the file exists
-        {
-            appendHash(keyHash, i, chunks, hashes, directoried);
-        }else{ //if the file doesn't exist
-            insertContentsToFile(arr[i], directoried); //insert the contents
-            appendHash(keyHash, i, chunks, hashes, directoried);
-        }
+        (checkFileExistence(directoried)) ? (0) : insertContentsToFile(arr[i], directoried);
+        appendHash(keyHash, i, chunks, hashes, directoried);
+        free(directoried);
     }
     return chunks;
     
